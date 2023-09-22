@@ -6,7 +6,11 @@ extern TEXTURE_DETAILS frameadv;
 extern TEXTURE_DETAILS autocam;
 extern TEXTURE_DETAILS chasecar;
 extern TEXTURE_DETAILS choosecar;
+#if defined(__vita__)
+extern TEXTURE_DETAILS clockv;
+#else
 extern TEXTURE_DETAILS clock;
+#endif
 extern TEXTURE_DETAILS delcam;
 extern TEXTURE_DETAILS editcam;
 extern TEXTURE_DETAILS fixedcam;

@@ -292,12 +292,14 @@ int GR_InitialiseGLESContext(char* windowName, int fullscreen)
 #endif
 
 	eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+#if !defined(__vita__)
 	g_window = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, g_windowWidth, g_windowHeight, windowFlags);
 
 	if (g_window == NULL)
 	{
 		eprinterr("Failed to create SDL window!\n");
 	}
+#endif
 
 	if (!eglInitialize(eglDisplay, &majorVersion, &minorVersion))
 	{
@@ -316,13 +318,13 @@ int GR_InitialiseGLESContext(char* windowName, int fullscreen)
 		}
 	}
 
-#if !defined(__EMSCRIPTEN__) && !defined(__RPI__)
+#if !defined(__EMSCRIPTEN__) && !defined(__RPI__) && !defined(__vita__)
 	SDL_SysWMinfo systemInfo;
 	SDL_VERSION(&systemInfo.version);
 	SDL_GetWindowWMInfo(g_window, &systemInfo);
 #endif
 
-#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__) || defined(__vita__)
 	EGLNativeWindowType dummyWindow;
 	eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)dummyWindow, NULL);
 #elif defined(__ANDROID__)
@@ -330,7 +332,7 @@ int GR_InitialiseGLESContext(char* windowName, int fullscreen)
 #else
 	eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)systemInfo.info.win.window, NULL);
 #endif
-	
+
 	if (eglSurface == EGL_NO_SURFACE)
 	{
 		eprinterr("eglSurface failure! Error: %x\n", eglGetError());
@@ -346,6 +348,14 @@ int GR_InitialiseGLESContext(char* windowName, int fullscreen)
 	}
 
 	eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
+
+#if defined(__vita__)
+	eglSwapInterval(eglDisplay, 0);
+  EGLint surface_width, surface_height;
+  eglQuerySurface(eglDisplay, eglSurface, EGL_WIDTH, &surface_width);
+  eglQuerySurface(eglDisplay, eglSurface, EGL_HEIGHT, &surface_height);
+  printf("Surface Width: %d, Surface Height: %d\n", surface_width, surface_height);
+#endif
 
 	return 1;
 }
@@ -426,7 +436,7 @@ int GR_InitialiseGLContext(char* windowName, int fullscreen)
 
 int GR_InitialiseGLExt()
 {
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && !defined(__vita__)
 	GLenum err = gladLoadGL();
 
 	if (err == 0)
@@ -508,6 +518,8 @@ void GR_UpdateSwapIntervalState(int swapInterval)
 {
 #if defined(RENDERER_OGL)
 	SDL_GL_SetSwapInterval(swapInterval);
+#elif defined(RENDERER_OGLES) && !defined(__vita__)
+	eglSwapInterval(eglDisplay, swapInterval);
 #endif
 }
 
@@ -591,12 +603,20 @@ GLint u_bilinearFilterLoc;
 	"	const float c_PackRange = 255.001;\n"\
 	"	float packRG(vec2 rg) { return (rg.y * 256.0 + rg.x) * c_PackRange;}\n"
 
+#if defined(__vita__)
+#define GPU_DECODE_RG_FUNC\
+	" vec4 decodeRG(float rg) {\n"\
+	" 	vec4 value = fract(floor(rg / vec4(1.0, 32.0, 1024.0, 32768.0)) / 32.0);\n"\
+	" 	return vec4(value.xyz, rg == 0.0 ? rg : (1.0 - value.w * 16.0));\n"\
+	" }\n"
+#else
 #define GPU_DECODE_RG_FUNC\
 	" vec4 decodeRG(float rg) {\n"\
 	" 	vec4 value = fract(floor(rg / vec4(1.0, 32.0, 1024.0, 32768.0)) / 32.0);\n"\
 	" 	return vec4(value.xyz, rg == 0 ? rg : (1.0 - value.w * 16));\n"\
 	" }\n"
-	//"	vec4 decodeRG(float rg) { return fract(floor(rg / vec4(1.0, 32.0, 1024.0, 32768.0)) / 32.0); }\n"
+  //"	vec4 decodeRG(float rg) { return fract(floor(rg / vec4(1.0, 32.0, 1024.0, 32768.0)) / 32.0); }\n"
+#endif
 
 #if defined(RENDERER_OGL) || (OGLES_VERSION == 3)
 
@@ -1357,7 +1377,7 @@ void GR_Clear(int x, int y, int w, int h, unsigned char r, unsigned char g, unsi
 
 void GR_SaveVRAM(const char* outputFileName, int x, int y, int width, int height, int bReadFromFrameBuffer)
 {
-#if !defined(__EMSCRIPTEN__) && !defined(__ANDROID__)
+#if !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && !defined(__vita__)
 
 #if defined(USE_OPENGL)
 
@@ -1402,7 +1422,9 @@ void GR_CopyRGBAFramebufferToVRAM(u_int* src, int x, int y, int w, int h, int up
 	{
 		for (int j = 0; j < w; j++)
 		{
-			uint c = *data_src++;
+			uint c = 0;
+      if (data_src)
+        c = *data_src++;
 
 			u_char b = ((c >> 3) & 0x1F);
 			u_char g = ((c >> 11) & 0x1F);
@@ -1411,7 +1433,8 @@ void GR_CopyRGBAFramebufferToVRAM(u_int* src, int x, int y, int w, int h, int up
 
 			int a = r == g == b == 0 ? 0 : 1;
 
-			*data_dst++ = r | (g << 5) | (b << 10) | (a << 15);
+      if (data_dst)
+			  *data_dst++ = r | (g << 5) | (b << 10) | (a << 15);
 		}
 	}
 

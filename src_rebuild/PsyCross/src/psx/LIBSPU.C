@@ -10,6 +10,10 @@
 
 #include <string.h>
 
+#if defined(__vita__)
+#define AL_ALEXT_PROTOTYPES
+#endif
+
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
@@ -98,6 +102,7 @@ ALuint		g_nAlReverbEffect = 0;
 int			g_enableSPUReverb = 0;
 int			g_ALEffectsSupported = 0;
 
+#if !defined(__vita__)
 LPALGENEFFECTS alGenEffects = NULL;
 LPALDELETEEFFECTS alDeleteEffects = NULL;
 LPALEFFECTI alEffecti = NULL;
@@ -105,6 +110,7 @@ LPALEFFECTF alEffectf = NULL;
 LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots = NULL;
 LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots = NULL;
 LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti = NULL;
+#endif
 
 void PsyX_SPU_InitOpenAlEffects()
 {
@@ -116,6 +122,7 @@ void PsyX_SPU_InitOpenAlEffects()
 		return;
 	}
 
+#if !defined(__vita__)
 	alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");
 	alDeleteEffects = (LPALDELETEEFFECTS)alGetProcAddress("alDeleteEffects");
 	alEffecti = (LPALEFFECTI)alGetProcAddress("alEffecti");
@@ -123,6 +130,7 @@ void PsyX_SPU_InitOpenAlEffects()
 	alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)alGetProcAddress("alGenAuxiliaryEffectSlots");
 	alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)alGetProcAddress("alDeleteAuxiliaryEffectSlots");
 	alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)alGetProcAddress("alAuxiliaryEffectSloti");
+#endif
 
 	int max_sends = 0;
 	alcGetIntegerv(g_ALCdevice, ALC_MAX_AUXILIARY_SENDS, 1, &max_sends);

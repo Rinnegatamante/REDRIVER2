@@ -20,7 +20,7 @@ void FS_FixPathSlashes(char* pathbuff)
     }
 }
 
-#elif defined (__unix__)
+#elif defined (__unix__) || defined(__vita__)
 
 #include <sys/stat.h>
 #include <glob.h>		// glob(), globfree()
@@ -106,12 +106,14 @@ const char* FS_FindFirst(const char* wildcard, FS_FINDDATA** findData)
 #else // POSIX
 	newFind->index = -1;
 
+#if !defined(__vita__)
 	if (glob(newFind->wildcard, 0, NULL, &newFind->gl) == 0 && newFind->gl.gl_pathc > 0)
 	{
 		newFind->pathlen = strchr(newFind->wildcard, '.') - newFind->wildcard;
 		newFind->index = 0;
 		return newFind->gl.gl_pathv[newFind->index] + newFind->pathlen;
 	}
+#endif
 #endif // _WIN32
 
 	// delete if no luck
@@ -151,8 +153,10 @@ void FS_FindClose(FS_FINDDATA* findData)
 	if(findData->fileHandle = INVALID_HANDLE_VALUE)
 		FindClose(findData->fileHandle);
 #else
+#if !defined(__vita__)
 	if (findData->index >= 0)
 		globfree(&findData->gl);
+#endif
 #endif // _WIN32
 	delete findData;
 }

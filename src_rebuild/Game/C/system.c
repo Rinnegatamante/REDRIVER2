@@ -17,6 +17,9 @@
 #include "pause.h"
 
 char gDataFolder[32] = "DRIVER2\\";
+#if defined(__vita__)
+char gDataFolderFS[32] = "ux0:data\\DRIVER2\\";
+#endif
 
 #ifdef PSX
 
@@ -262,7 +265,11 @@ int Loadfile(char* name, char* addr)
 #if USE_PC_FILESYSTEM
 	int fileSize;
 
+#if defined(__vita__)
+	sprintf(namebuffer, "%s%s", gDataFolderFS, name);
+#else
 	sprintf(namebuffer, "%s%s", gDataFolder, name);
+#endif
 	FS_FixPathSlashes(namebuffer);
 
 	FILE* fptr = fopen(namebuffer, "rb");
@@ -296,7 +303,11 @@ int FileExists(char* filename)
 		return 0;
 
 #if USE_PC_FILESYSTEM
+#if defined(__vita__)
+	sprintf(namebuffer, "%s%s", gDataFolderFS, filename);
+#else
 	sprintf(namebuffer, "%s%s", gDataFolder, filename);
+#endif
 	FS_FixPathSlashes(namebuffer);
 
 	FILE* fp = fopen(namebuffer, "rb");
@@ -344,7 +355,11 @@ int LoadfileSeg(char* name, char* addr, int offset, int loadsize)
 #if USE_PC_FILESYSTEM
 	int fileSize;
 
+#if defined(__vita__)
+	sprintf(namebuffer, "%s%s", gDataFolderFS, name);
+#else
 	sprintf(namebuffer, "%s%s", gDataFolder, name);
+#endif
 	FS_FixPathSlashes(namebuffer);
 
 	FILE* fptr = fopen(namebuffer, "rb");
@@ -448,7 +463,7 @@ int LoadfileSeg(char* name, char* addr, int offset, int loadsize)
 	}
 	
 	return loadsize;
-#elif USE_PC_FILESYSTEM && !defined(__EMSCRIPTEN__)
+#elif USE_PC_FILESYSTEM && !defined(__EMSCRIPTEN__) && !defined(__vita__)
 	char errPrint[1024];
 	sprintf(errPrint, "Cannot open '%s'\n", namebuffer);
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ERROR", errPrint, NULL);
@@ -561,7 +576,7 @@ int loadsectorsPC(char* addr, int sector, int nsectors)
 		return 1;
 	}
 
-#if USE_PC_FILESYSTEM && !defined(__EMSCRIPTEN__)
+#if USE_PC_FILESYSTEM && !defined(__EMSCRIPTEN__) && !defined(__vita__)
 	char errPrint[512];
 	sprintf(errPrint, "loadsectorsPC: failed to open '%s'\n", namebuffer);
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ERROR", errPrint, NULL);
@@ -911,7 +926,11 @@ void SetCityType(CITYTYPE type)
 		break;
 	}
 
+#if defined(__vita__)
+	sprintf(filename, format, gDataFolderFS, LevelFiles[GameLevel]);
+#else
 	sprintf(filename, format, gDataFolder, LevelFiles[GameLevel]);
+#endif
 	FS_FixPathSlashes(filename);
 
 	FILE* levFp = fopen(filename, "rb");
@@ -961,7 +980,7 @@ void SetCityType(CITYTYPE type)
 	while (CdSearchFile(&cdfile, filename) == NULL)
 	{
 #if USE_PC_FILESYSTEM
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && !defined(__vita__)
 		char errPrint[512];
 		sprintf(errPrint, "SetCityType: failed to open '%s'\n", filename);
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "ERROR", errPrint, NULL);
@@ -995,7 +1014,7 @@ void SetCityType(CITYTYPE type)
 
 		data += 2;
 	}
-#elif USE_PC_FILESYSTEM && !defined(__EMSCRIPTEN__)
+#elif USE_PC_FILESYSTEM && !defined(__EMSCRIPTEN__) && !defined(__vita__)
 	char errPrint[1024];
 	sprintf(errPrint, "SetCityType: cannot open level '%s'\n", filename);
 

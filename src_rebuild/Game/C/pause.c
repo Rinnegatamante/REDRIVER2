@@ -16,6 +16,11 @@
 #include "loadsave.h"
 #include "cutrecorder.h"
 
+#if defined(__vita__)
+#include <psp2/io/stat.h>
+#define _mkdir(str) sceIoMkdir(str, 0777)
+#endif
+
 #define REPLAY_NAME_LEN		16
 #define SCORE_NAME_LEN		5
 
@@ -807,11 +812,27 @@ int MaxMenuStringLength(MENU_HEADER *pMenu)
 	MENU_ITEM *pItems;
 
 	pItems = pMenu->MenuItems;
+#if defined(__vita__)
+  if (GET_GAME_TXT(pMenu->Title) != NULL) {
+	  max = StringWidth(GET_GAME_TXT(pMenu->Title));
+  } else {
+	  max = StringWidth(pMenu->Title);
+  }
+#else
 	max = StringWidth(GET_GAME_TXT(pMenu->Title));
+#endif
 
 	while ((pItems->Type & PAUSE_TYPE_ENDITEMS) == 0)
 	{
+#if defined(__vita__)
+    if (GET_GAME_TXT(pItems->Text) != NULL) {
+		  temp = StringWidth(GET_GAME_TXT(pItems->Text));
+    } else {
+		  temp = StringWidth(pItems->Text);
+    }
+#else
 		temp = StringWidth(GET_GAME_TXT(pItems->Text));
+#endif
 
 		if (pItems->Type & (PAUSE_TYPE_SFXVOLUME | PAUSE_TYPE_MUSICVOLUME)) 
 			temp = temp + StringWidth(" 100");
@@ -1073,7 +1094,15 @@ void DrawVisibleMenus(void)
 	
 	if (pActive->Title)
 	{
+#if defined(__vita__)
+    if (GET_GAME_TXT(pActive->Title) != NULL) {
+		  OutputString(GET_GAME_TXT(pActive->Title), 2, xpos, ypos, menuWidth, 128, 32, 32);
+    } else {
+		  OutputString(pActive->Title, 2, xpos, ypos, menuWidth, 128, 32, 32);
+    }
+#else
 		OutputString(GET_GAME_TXT(pActive->Title), 2, xpos, ypos, menuWidth, 128, 32, 32);
+#endif
 
 		ypos += 15;
 	}
@@ -1112,7 +1141,15 @@ void DrawVisibleMenus(void)
 		}
 		else
 		{
+#if defined(__vita__)
+      if (GET_GAME_TXT(pItem->Text) != NULL) {
+			  OutputString(GET_GAME_TXT(pItem->Text), pItem->Justify, xpos, ypos, menuWidth, r, 128, b);
+      } else {
+			  OutputString(pItem->Text, pItem->Justify, xpos, ypos, menuWidth, r, 128, b);
+      }
+#else
 			OutputString(GET_GAME_TXT(pItem->Text), pItem->Justify, xpos, ypos, menuWidth, r, 128, b);
+#endif
 		}
 
 		ypos += 15;

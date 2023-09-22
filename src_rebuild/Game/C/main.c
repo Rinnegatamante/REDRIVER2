@@ -1275,8 +1275,13 @@ int FilterFrameTime()
 {
 	static int frame = 0;
 
+#if defined(__vita__) && defined(FPS_60)
+	// always stay 60 FPS (1 vblanks)
+	if (VSync(-1) - frame < 1)
+#else
 	// always stay 30 FPS (2 vblanks)
 	if (VSync(-1) - frame < 2)
+#endif
 		return 0;
 
 	frame = VSync(-1);
@@ -1712,7 +1717,7 @@ void SsSetSerialVol(short s_num, short voll, short volr)
 
 //-------------------------------------------
 
-#if !defined(PSX) && !defined(__EMSCRIPTEN__)
+#if !defined(PSX) && !defined(__EMSCRIPTEN__) && !defined(__vita__)
 #include <SDL_messagebox.h>
 void PrintCommandLineArguments()
 {
@@ -1872,7 +1877,7 @@ int redriver2_main(int argc, char** argv)
 		ScreenNames[0] = NTSCScreenNames[0];
 #endif
 
-#if !defined(PSX) && !defined(__EMSCRIPTEN__)
+#if !defined(PSX) && !defined(__EMSCRIPTEN__) && !defined(__vita__)
 	// verify installation
 	if (!FileExists("DATA\\FEFONT.BNK") || !FileExists("GFX\\FONT2.FNT"))
 	{
@@ -2090,7 +2095,7 @@ int redriver2_main(int argc, char** argv)
 #endif
 		else
 		{
-#if !defined(PSX) && !defined(__EMSCRIPTEN__)
+#if !defined(PSX) && !defined(__EMSCRIPTEN__) && !defined(__vita__)
 			if (!commandLinePropsShown)
 				PrintCommandLineArguments();
 #endif

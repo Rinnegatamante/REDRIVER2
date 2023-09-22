@@ -666,7 +666,8 @@ void DrawLensFlare(void)
 			source.x = sun_pers_conv_position.vx;
 			source.y = sun_pers_conv_position.vy + last->disp.disp.y;
 
-#if 1//def PSX
+//#if 1//def PSX
+#if !defined(__vita__) // disabled for perf
 			sample_sun = (DR_MOVE*)current->primptr;
 			SetDrawMove(sample_sun, &source, 1008, 456);
 

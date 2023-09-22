@@ -1823,7 +1823,7 @@ void TannerShadow(LPPEDESTRIAN pDrawingPed, VECTOR* pPedPos, SVECTOR* pLightPos,
 		return;
 #endif
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(__vita__) // disabled for perf
 	// since any WebGL isn't able to make it drawn...
 	return;
 #endif

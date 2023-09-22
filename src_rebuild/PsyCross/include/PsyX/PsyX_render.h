@@ -16,6 +16,9 @@
 #elif defined(__ANDROID__)
 #   define RENDERER_OGLES
 #   define OGLES_VERSION (3)
+#elif defined(__vita__)
+#   define RENDERER_OGLES
+#   define OGLES_VERSION (2)
 #endif
 
 #if defined(RENDERER_OGL) || defined(RENDERER_OGLES)
@@ -51,6 +54,10 @@
 #      endif
 #   endif
 
+#if defined(__vita__)
+#include <psp2common/types.h>
+#endif
+
 #   include <EGL/egl.h>
 
 #endif
@@ -76,16 +83,16 @@
 #define NULL		0
 #endif
 
-/*
 // FIXME: enable when needed
 #if defined(RENDERER_OGLES)
 
 #	define glGenVertexArrays       glGenVertexArraysOES
 #	define glBindVertexArray       glBindVertexArrayOES
 #	define glDeleteVertexArrays    glDeleteVertexArraysOES
+# define glClearDepth            glClearDepthf
+# define GL_RGB8                 GL_RGB8_OES
 
 #endif
-*/
 
 #if defined(RENDERER_OGL)
 #	define VRAM_FORMAT            GL_RG

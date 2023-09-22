@@ -36,7 +36,11 @@ TEXTURE_DETAILS movecampos; // address 0xC08C0
 TEXTURE_DETAILS ok; // address 0xC1BD8
 TEXTURE_DETAILS pause; // address 0xBF970
 TEXTURE_DETAILS playpause; // address 0xC2A28
+#if defined(__vita__)
+TEXTURE_DETAILS clockv; // address 0xBF940
+#else
 TEXTURE_DETAILS clock; // address 0xBF940
+#endif
 TEXTURE_DETAILS choosecar; // address 0xC2A08
 TEXTURE_DETAILS chasecar; // address 0xC1D60
 TEXTURE_DETAILS addcam; // address 0xC0A50
@@ -64,7 +68,11 @@ REPLAY_ICON replay_icons[] =
 	{ 140, 74, &chasecar, G_LTXT_ID(GTXT_ChaseCamera), 164, 72 },
 	{ 140, 98, &fixedcam, G_LTXT_ID(GTXT_TripodCamera), 164, 96 },
 	{ 140, 122, &ok, G_LTXT_ID(GTXT_Accept), 164, 120 },
+#if defined(__vita__)
+	{ 140, 122, &clockv, G_LTXT_ID(GTXT_MoveCameraStart), 164, 120 },
+#else
 	{ 140, 122, &clock, G_LTXT_ID(GTXT_MoveCameraStart), 164, 120 },
+#endif
 	{ 140, 146, &delcam, G_LTXT_ID(GTXT_DeleteCamera), 164, 144 },
 	{ 140, 170, &ok, G_LTXT_ID(GTXT_Accept), 164, 168 },
 	{ 164, 50, &choosecar, G_LTXT_ID(GTXT_YouorPursuer), 164, 72 },

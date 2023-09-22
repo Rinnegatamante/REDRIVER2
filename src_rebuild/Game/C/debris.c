@@ -820,7 +820,11 @@ void InitDebrisNames(void)
 	GetTextureDetails("AUTO", &autocam);
 	GetTextureDetails("CHASEC", &chasecar);
 	GetTextureDetails("CHOOSECA", &choosecar);
+#if defined(__vita__)
+	GetTextureDetails("CLOCK", &clockv);
+#else
 	GetTextureDetails("CLOCK", &clock);
+#endif
 	GetTextureDetails("DELCAM", &delcam);
 	GetTextureDetails("EDITCAM", &editcam);
 	GetTextureDetails("FIXEDCA", &fixedcam);

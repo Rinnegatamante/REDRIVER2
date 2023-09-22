@@ -377,7 +377,11 @@ FILE* g_logStream = NULL;
 void PsyX_Log_Initialise()
 {
 	char appLogFilename[128];
+#if defined(__vita__)
+	sprintf(appLogFilename, "ux0:/data/DRIVER2/%s.log", g_appNameStr);
+#else
 	sprintf(appLogFilename, "%s.log", g_appNameStr);
+#endif
 
 	g_logStream = fopen(appLogFilename, "wb");
 

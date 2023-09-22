@@ -26,6 +26,11 @@
 
 #include "../utils/ini.h"
 
+#if defined(__vita__)
+#include <psp2/io/stat.h>
+#define _mkdir(str) sceIoMkdir(str, 0777)
+#endif
+
 typedef struct AutoTestStats
 {
 	int numHitCars;

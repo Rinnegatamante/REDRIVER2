@@ -839,7 +839,7 @@ void DrawScreen(PSXSCREEN *pScr)
 #endif
 
 		// debug version text
-#if defined(_DEBUG) || defined(DEBUG_OPTIONS)
+#if (defined(_DEBUG) || defined(DEBUG_OPTIONS)) && !defined(__vita__)
 		FEPrintString(version_info, 40, 16, 0, 128, 128, 0);
 		FEPrintString("--- " GAME_VERSION " ---", 320, 16, 0, 128, 128, 0);
 #endif
@@ -1692,7 +1692,9 @@ void EndFrame(void)
 	DrawOTag((u_long*)(db_hold->ot + FE_OTSIZE - 1));
 
 	ClearOTagR((u_long*)current->ot, FE_OTSIZE);
+#if defined(__vita__) && defined(FPS_60) // run menu in 60fps
 	VSync(0);
+#endif
 
 #ifndef PSX
 	PsyX_EndScene();

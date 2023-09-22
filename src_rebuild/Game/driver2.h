@@ -50,7 +50,7 @@
 #define printWarning			PsyX_Log_Warning
 #define printError				PsyX_Log_Error
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(__vita__)
 #define trap(ode) {printError("EXCEPTION code: %x\n", ode);}
 #elif _MSC_VER >= 1400
 #define trap(ode) {printError("EXCEPTION code: %x\n", ode); __debugbreak();}

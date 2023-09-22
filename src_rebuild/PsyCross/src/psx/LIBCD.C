@@ -22,6 +22,10 @@
 #define free SDL_free
 #endif
 
+#if defined(__vita__)
+#include <psp2/kernel/threadmgr.h>
+#endif
+
 //-------------------------------------------------------
 // Virtual stdio.h implementation
 
@@ -606,7 +610,11 @@ int OpenBinaryImageFile()
 	//if (g_UseCDImage)
 	//	return 0;
 
+#if defined(__vita__)
+	if (!g_imageFile.basePtr && !g_imageFile.fp)
+#else
 	if (!g_imageFile.basePtr)
+#endif
 	{
 		// open Binary
 		g_imageFile.fp = fopen(g_cdImageBinaryFileName, "rb");
@@ -918,6 +926,11 @@ int _eCdSpoolerThreadFunc(void* data)
 {
 	//Print incoming data
 	eprintwarn("Running CD thread...\n");
+
+#if defined(__vita__)
+    // set thread to higher priority so it doesn't get deadlocked
+    SDL_SetThreadPriority(SDL_THREAD_PRIORITY_HIGH);
+#endif
 
 	g_cdReadDoneFlag = 0;
 	g_isCdSectorDataRead = 0;

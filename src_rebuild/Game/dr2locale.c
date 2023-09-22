@@ -26,6 +26,10 @@ char* LanguageNames[5] =
 	"SP",
 };
 
+#if defined(__vita__)
+char gDataFolderFS[32] = "ux0:/data/DRIVER2/";
+#endif
+
 #ifndef PSX
 // [D] Driver 1 PC function
 int InitStringMng()
@@ -35,13 +39,21 @@ int InitStringMng()
 	if (gUserLanguage < 0 || gUserLanguage >= 6)
 		gUserLanguage = 0;
 
+#if defined(__vita__)
+	sprintf(filename, "%sLANG/%s_GAME.LTXT", gDataFolderFS, LanguageNames[gUserLanguage]);
+#else
 	sprintf(filename, "%sLANG\\%s_GAME.LTXT", gDataFolder, LanguageNames[gUserLanguage]);
+#endif
 	FS_FixPathSlashes(filename);
 
 	if(InitStringLanguage(filename, 0) == -1)
 		return 0;
 	
+#if defined(__vita__)
+	sprintf(filename, "%sLANG/%s_MISSION.LTXT", gDataFolderFS, LanguageNames[gUserLanguage]);
+#else
 	sprintf(filename, "%sLANG\\%s_MISSION.LTXT", gDataFolder, LanguageNames[gUserLanguage]);
+#endif
 	FS_FixPathSlashes(filename);
 	
 	if(InitStringLanguage(filename, 1) == -1)

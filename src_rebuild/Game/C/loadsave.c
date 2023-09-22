@@ -17,6 +17,12 @@
 #include <stdlib.h>		// getenv
 #endif // PSX
 
+#if defined(__vita__)
+#include <psp2/io/stat.h>
+#define HOME_ENV "HOME"
+#define _mkdir(str) sceIoMkdir(str, 0777)
+#endif
+
 struct GAME_SAVE_HEADER
 {
 	u_int magic;
@@ -88,6 +94,9 @@ void ShowSavingWaitMessage(char *message, int height)
 #ifndef PSX
 void GetGameProfilePath(char* str)
 {
+#if defined(__vita__)
+  strcpy(str, "ux0:/data/DRIVER2");
+#else
 	char* homepath;
 
 	homepath = getenv(HOME_ENV); // "USERPROFILE"
@@ -104,6 +113,7 @@ void GetGameProfilePath(char* str)
 	{
 		str[0] = 0;
 	}
+#endif
 }
 #endif // PSX
 
