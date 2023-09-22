@@ -1,3 +1,42 @@
+# Vita Instructions
+This is a port of Reverse Engineered Driver 2 (REDRIVER2) for Vita. Reverse engineering efforts of the game were originally done by SoapyMan of OpenDriver2.
+
+1. Find and download the PS1 Driver 2 game on your PC. Extract the archive if it came as one. (You only need CD1)
+
+2. Rename the (extracted) bin file to Driver2CD1.bin
+
+3. Download and extract [REDRIVER2_Win32_Release.zip](https://github.com/OpenDriver2/REDRIVER2/releases/download/7.4-rc2/REDRIVER2_Win32_Release.zip)
+
+4. After extraction, transfer only the DRIVER2 folder to ux0:/data/DRIVER2 on your Vita.
+
+5. Transfer Driver2CD1.bin to ux0:/data/DRIVER2/Driver2CD1.bin
+
+6. Download the [config.ini](https://raw.githubusercontent.com/OsirizX/REDRIVER2/vita/src_rebuild/project_vita/config.ini)
+
+7. Transfer the config.ini to ux0:/data/DRIVER2/config.ini
+
+8. Download the [VPK](https://vitadb.rinnegatamante.it/get_hb_url.php?id=1145) and install.
+
+9. Launch the game selecting 1 of 3 modes:
+- Stretched widescreen (default)
+- 4:3 aspect ratio (not centered)
+- Widescreen fix (better image quality with lower perf)
+
+10. Play!
+
+### Notes
+- Debug menu is enabled by default. Press start to view it
+- Press start+select to use analog sticks
+- Press up+triangle to get out of car
+
+### Known issues:
+- Some levels fail to load properly. Reloading the level from main menu sometimes fixes this. (Use debug menu to skip the level if this happens)
+- FMV playback doesn't work
+- Suspend/resume crashes the game
+- Peformance hit when car crashes and in heavily populated areas
+- Graphical glitches
+
+### Original README
 # REDRIVER2 (Reverse-Engineered Driver 2)
 
 Game running on Windows:
