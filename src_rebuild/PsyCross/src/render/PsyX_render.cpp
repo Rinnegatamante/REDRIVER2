@@ -292,15 +292,13 @@ int GR_InitialiseGLESContext(char* windowName, int fullscreen)
 #endif
 
 	eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-#if !defined(__vita__)
 	g_window = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, g_windowWidth, g_windowHeight, windowFlags);
 
 	if (g_window == NULL)
 	{
 		eprinterr("Failed to create SDL window!\n");
 	}
-#endif
-
+#ifndef __vita__
 	if (!eglInitialize(eglDisplay, &majorVersion, &minorVersion))
 	{
 		eprinterr("eglInitialize failure! Error: %x\n", eglGetError());
@@ -317,22 +315,23 @@ int GR_InitialiseGLESContext(char* windowName, int fullscreen)
 			printf("Error code: %d\n", eglGetError());
 		}
 	}
-
+#endif
 #if !defined(__EMSCRIPTEN__) && !defined(__RPI__) && !defined(__vita__)
 	SDL_SysWMinfo systemInfo;
 	SDL_VERSION(&systemInfo.version);
 	SDL_GetWindowWMInfo(g_window, &systemInfo);
 #endif
 
-#if defined(__EMSCRIPTEN__) || defined(__vita__)
+#if defined(__EMSCRIPTEN__)
 	EGLNativeWindowType dummyWindow;
 	eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)dummyWindow, NULL);
 #elif defined(__ANDROID__)
 	eglSurface = systemInfo.info.android.surface;
-#else
+#elif !defined(__vita__)
 	eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)systemInfo.info.win.window, NULL);
 #endif
 
+#ifndef __vita__
 	if (eglSurface == EGL_NO_SURFACE)
 	{
 		eprinterr("eglSurface failure! Error: %x\n", eglGetError());
@@ -348,15 +347,7 @@ int GR_InitialiseGLESContext(char* windowName, int fullscreen)
 	}
 
 	eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext);
-
-#if defined(__vita__)
-	eglSwapInterval(eglDisplay, 0);
-  EGLint surface_width, surface_height;
-  eglQuerySurface(eglDisplay, eglSurface, EGL_WIDTH, &surface_width);
-  eglQuerySurface(eglDisplay, eglSurface, EGL_HEIGHT, &surface_height);
-  printf("Surface Width: %d, Surface Height: %d\n", surface_width, surface_height);
 #endif
-
 	return 1;
 }
 
@@ -495,7 +486,9 @@ int GR_InitialiseRender(char* windowName, int width, int height, int fullscreen)
 void GR_Shutdown()
 {
 #if defined(USE_OPENGL)
+#ifndef __vita__
 	glDeleteVertexArrays(2, g_glVertexArray);
+#endif
 	glDeleteBuffers(2, g_glVertexBuffer);
 
 	PBO_Destroy(&g_glFramebufferPBO);
@@ -516,9 +509,9 @@ void GR_Shutdown()
 
 void GR_UpdateSwapIntervalState(int swapInterval)
 {
-#if defined(RENDERER_OGL)
+#if defined(RENDERER_OGL) || defined(__vita__)
 	SDL_GL_SetSwapInterval(swapInterval);
-#elif defined(RENDERER_OGLES) && !defined(__vita__)
+#elif defined(RENDERER_OGLES)
 	eglSwapInterval(eglDisplay, swapInterval);
 #endif
 }
@@ -555,7 +548,18 @@ void GR_EndScene()
 		GR_SetWireframe(0);
 
 #if defined(USE_OPENGL)
+#if !defined(__vita__)
 	glBindVertexArray(0);
+#else
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDisableVertexAttribArray(a_position);
+	glDisableVertexAttribArray(a_texcoord);
+	glDisableVertexAttribArray(a_color);
+	glDisableVertexAttribArray(a_extra);
+#if defined(USE_PGXP)
+	glDisableVertexAttribArray(a_zw);
+#endif
+#endif
 #endif
 }
 
@@ -681,18 +685,18 @@ GLint u_bilinearFilterLoc;
 	"	float c_textureSize = 1.0;\n"\
 	"	float c_onePixel = 1.0;\n"\
 	"	vec4 BilinearTextureSample(vec2 P) {\n"\
-	"		vec2 frac = fract(P);\n"\
+	"		vec2 _frac = fract(P);\n"\
 	"		vec2 pixel = floor(P);\n"\
 	"		float C11 = samplePSX(pixel);\n"\
 	"		float C21 = samplePSX(pixel + vec2(c_onePixel, 0.0));\n"\
 	"		float C12 = samplePSX(pixel + vec2(0.0, c_onePixel));\n"\
 	"		float C22 = samplePSX(pixel + vec2(c_onePixel, c_onePixel));\n"\
-	"		float ax1 = mix(float(C11 > 0.0), float(C21 > 0.0), frac.x);\n"\
-	"		float ax2 = mix(float(C12 > 0.0), float(C22 > 0.0), frac.x);\n"\
-	"		if(mix(ax1, ax2, frac.y) < 0.5) { discard; }\n"\
-	"		vec4 x1 = mix(decodeRG(C11), decodeRG(C21), frac.x);\n"\
-	"		vec4 x2 = mix(decodeRG(C12), decodeRG(C22), frac.x);\n"\
-	"		return mix(x1, x2, frac.y);\n"\
+	"		float ax1 = mix(float(C11 > 0.0), float(C21 > 0.0), _frac.x);\n"\
+	"		float ax2 = mix(float(C12 > 0.0), float(C22 > 0.0), _frac.x);\n"\
+	"		if(mix(ax1, ax2, _frac.y) < 0.5) { discard; }\n"\
+	"		vec4 x1 = mix(decodeRG(C11), decodeRG(C21), _frac.x);\n"\
+	"		vec4 x2 = mix(decodeRG(C12), decodeRG(C22), _frac.x);\n"\
+	"		return mix(x1, x2, _frac.y);\n"\
 	"	}\n"
 
 #define GPU_NEAREST_SAMPLE_FUNC \
@@ -935,7 +939,8 @@ ShaderID GR_Shader_Compile(const char* source)
 	glBindAttribLocation(program, a_position, "a_position");
 	glBindAttribLocation(program, a_texcoord, "a_texcoord");
 	glBindAttribLocation(program, a_color, "a_color");
-
+	glBindAttribLocation(program, a_extra, "a_extra");
+	
 #ifdef USE_PGXP
 	glBindAttribLocation(program, a_zw, "a_zw");
 #endif
@@ -946,7 +951,7 @@ ShaderID GR_Shader_Compile(const char* source)
 
 	GLint sampler = 0;
 	glUseProgram(program);
-	glUniform1iv(glGetUniformLocation(program, "s_texture"), 1, &sampler);
+	glUniform1i(glGetUniformLocation(program, "s_texture"), sampler);
 	glUseProgram(0);
 
 	return program;
@@ -1021,8 +1026,9 @@ int GR_InitialisePSX()
 #if defined(USE_OPENGL)
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_STENCIL_TEST);
+#ifndef __vita__
 	glBlendColor(0.5f, 0.5f, 0.5f, 0.25f);
-
+#endif
 	// gen framebuffer
 	{
 		memset(&g_glFramebufferPBO, 0, sizeof(g_glFramebufferPBO));
@@ -1048,9 +1054,10 @@ int GR_InitialisePSX()
 			glBindFramebuffer(GL_FRAMEBUFFER, g_glBlitFramebuffer);
 
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_fbTexture, 0);
+#ifndef __vita__
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-
+#endif
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 	}
@@ -1079,9 +1086,10 @@ int GR_InitialisePSX()
 			glBindFramebuffer(GL_FRAMEBUFFER, g_glOffscreenFramebuffer);
 
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_offscreenRTTexture, 0);
+#ifndef __vita__
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-
+#endif
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 	}
@@ -1114,9 +1122,10 @@ int GR_InitialisePSX()
 			glBindFramebuffer(GL_FRAMEBUFFER, g_glVRAMFramebuffer);
 
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_vramTexture, 0);
+#ifndef __vita__
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
-
+#endif
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 	}
@@ -1126,17 +1135,22 @@ int GR_InitialisePSX()
 		int i;
 
 		glGenBuffers(2, g_glVertexBuffer);
+#ifndef __vita__
 		glGenVertexArrays(2, g_glVertexArray);
-
+#endif
 		for (i = 0; i < 2; i++)
 		{
+#ifndef __vita__
 			glBindVertexArray(g_glVertexArray[i]);
-
+#endif
 			glBindBuffer(GL_ARRAY_BUFFER, g_glVertexBuffer[i]);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(GrVertex) * MAX_NUM_POLY_BUFFER_VERTICES, NULL, GL_DYNAMIC_DRAW);
 		}
-
+#ifndef __vita__
 		glBindVertexArray(0);
+#else
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+#endif
 	}
 #else
 #error
@@ -1835,8 +1849,11 @@ void GR_SetWireframe(int enable)
 void GR_BindVertexBuffer()
 {
 #if defined(USE_OPENGL)
+#ifdef __vita__
+	glBindBuffer(GL_ARRAY_BUFFER, g_glVertexBuffer[g_curVertexBuffer]);
+#else
 	glBindVertexArray(g_glVertexArray[g_curVertexBuffer]);
-
+#endif
 	glEnableVertexAttribArray(a_position);
 	glEnableVertexAttribArray(a_texcoord);
 	glEnableVertexAttribArray(a_color);

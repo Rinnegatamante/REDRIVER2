@@ -2,22 +2,18 @@
 
 APP_TITLE=REDRIVER2
 
-VITASDK=/usr/local/vitasdk
-CC=${VITASDK}/bin/arm-vita-eabi-gcc
-CXX=${VITASDK}/bin/arm-vita-eabi-g++
+CC=arm-vita-eabi-gcc
+CXX=arm-vita-eabi-g++
 
 CFLAGS=-fno-strict-aliasing -fomit-frame-pointer -ffunction-sections -fno-lto -fno-optimize-sibling-calls -Wl,-q,--allow-multiple-definition
 CXXFLAGS=$(CFLAGS)
 LDFLAGS=$(CFLAGS)
 
 ifndef config
-  #config=debug_vita
-	#binpath=../bin/Debug/REDRIVER2_dbg
   config=release_vita
-  binpath=../bin/Release/REDRIVER2
-  #config=release_dev_vita
-	#binpath=../bin/Release_dev/REDRIVER2_dev
 endif
+
+binpath=../bin/Release/REDRIVER2
 
 ifndef verbose
   SILENT = @
@@ -60,34 +56,27 @@ endif
 %.velf: %.elf
 	cp $(binpath) $<
 	cp $< $<.unstripped.elf
-	${VITASDK}/bin/arm-vita-eabi-strip -g $<
-	${VITASDK}/bin/vita-elf-create $< $@
+	arm-vita-eabi-strip -g $<
+	vita-elf-create $< $@
 
 %.self: %.velf
-	${VITASDK}/bin/vita-make-fself -c $< $@
-	${VITASDK}/bin/vita-make-fself -c -a 0x2800000000000000 $< eboot.bin
+	vita-make-fself -c $< $@
+	vita-make-fself -c -a 0x2800000000000000 $< eboot.bin
 
 %.vpk: %.self
-	${VITASDK}/bin/vita-mksfoex -s TITLE_ID=$(APP_TITLE) -d ATTRIBUTE2=12 "$(APP_TITLE)" param.sfo
-	${VITASDK}/bin/vita-pack-vpk -s param.sfo -b eboot.bin $@ \
+	vita-mksfoex -s TITLE_ID=$(APP_TITLE) -d ATTRIBUTE2=12 "$(APP_TITLE)" param.sfo
+	vita-pack-vpk -s param.sfo -b eboot.bin $@ \
 		-a livearea/icon0.png=sce_sys/icon0.png \
 		-a livearea/bg.png=sce_sys/livearea/contents/bg.png \
 		-a livearea/startup.png=sce_sys/livearea/contents/startup.png \
 		-a livearea/template.xml=sce_sys/livearea/contents/template.xml \
 		-a livearea/pic0.png=sce_sys/pic0.png \
-		-a module/libGLESv2.suprx=module/libGLESv2.suprx \
-		-a module/libgpu_es4_ext.suprx=module/libgpu_es4_ext.suprx \
-		-a module/libIMGEGL.suprx=module/libIMGEGL.suprx \
-		-a module/libpvrPSP2_WSEGL.suprx=module/libpvrPSP2_WSEGL.suprx \
-		-a module/libgpu_es4_kernel_ext.skprx=module/libgpu_es4_kernel_ext.skprx
 		#-a REDRIVER2_PGXP.self=REDRIVER2_PGXP.self
 
 $(APP_TITLE).elf:
 	@echo $(APP_TITLE)
 
 clean:
-	@${MAKE} --no-print-directory -C . -f PsyCross.make clean
-	@${MAKE} --no-print-directory -C . -f REDRIVER2.make clean
 	rm -rf $(APP_TITLE).velf $(APP_TITLE).elf $(APP_TITLE).elf.unstripped.elf $(APP_TITLE).self $(APP_TITLE).vpk param.sfo eboot.bin obj
 
 help:

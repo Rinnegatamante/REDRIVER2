@@ -30,12 +30,10 @@
 
 #if defined(__vita__)
 #include <vitasdk.h>
+#include <vitaGL.h>
 #include <taihen.h>
-#include <psp2/kernel/modulemgr.h>
-#include <gpu_es4/psp2_pvr_hint.h>
 #include <psp2/appmgr.h>
-int _newlib_heap_size_user   = 100 * 1024 * 1024;
-unsigned int sceLibcHeapSize =  16 * 1024 * 1024;
+int _newlib_heap_size_user   = 256 * 1024 * 1024;
 int set_aspect_4x3 = 0;
 int set_widescreen_fix = 0;
 #endif
@@ -534,52 +532,14 @@ int main(int argc, char** argv)
 #endif
 
 #if defined(__vita__)
-  scePowerSetArmClockFrequency(444);
-  scePowerSetBusClockFrequency(222);
-  scePowerSetGpuClockFrequency(222);
-  scePowerSetGpuXbarClockFrequency(166);
+	sceSysmoduleLoadModule(SCE_SYSMODULE_RAZOR_CAPTURE);
+	scePowerSetArmClockFrequency(444);
+	scePowerSetBusClockFrequency(222);
+	scePowerSetGpuClockFrequency(222);
+	scePowerSetGpuXbarClockFrequency(166);
+	
+	vglInitExtended(0, 960, 544, 16 * 1024 * 1024, SCE_GXM_MULTISAMPLE_4X);
 
-  sceKernelLoadStartModule("vs0:sys/external/libfios2.suprx", 0, NULL, 0, NULL, NULL);
-  sceKernelLoadStartModule("vs0:sys/external/libc.suprx", 0, NULL, 0, NULL, NULL);
-  sceKernelLoadStartModule("app0:module/libgpu_es4_ext.suprx", 0, NULL, 0, NULL, NULL);
-  sceKernelLoadStartModule("app0:module/libIMGEGL.suprx", 0, NULL, 0, NULL, NULL);
-  taiLoadStartKernelModule("app0:module/libgpu_es4_kernel_ext.skprx", 0, NULL, 0);
-
-  SceAppUtilInitParam appUtilParam;
-  SceAppUtilBootParam appUtilBootParam;
-  memset(&appUtilParam, 0, sizeof(SceAppUtilInitParam));
-  memset(&appUtilBootParam, 0, sizeof(SceAppUtilBootParam));
-  sceAppUtilInit(&appUtilParam, &appUtilBootParam);
-
-  SceAppUtilAppEventParam eventParam;
-	memset(&eventParam, 0, sizeof(SceAppUtilAppEventParam));
-	sceAppUtilReceiveAppEvent(&eventParam);
-  printf("sceAppUtilReceiveAppEvent 0x%x\n", eventParam);
-#if !defined(USE_PGXP)
-	if (eventParam.type == 0x05)
-  {
-    char *int_argv[16];
-    char buffer[2048];
-    memset(buffer, 0, 2048);
-    sceAppUtilAppEventParseLiveArea(&eventParam, buffer);
-    printf("sceAppUtilEventParseLiveArea %s\n", buffer);
-    if (strstr(buffer, "aspect") != NULL)
-    {
-		  set_aspect_4x3 = 1;
-    }
-    else if (strstr(buffer, "widescreen") != NULL)
-    {
-      set_widescreen_fix = 1;
-      int ret = sceAppMgrLoadExec("app0:/REDRIVER2_PGXP.self", NULL, NULL);
-      printf("sceAppMgrLoadExec 0x%x\n", ret);
-    }
-	}
-#endif
-  sceAppUtilShutdown();
-
-  PVRSRV_PSP2_APPHINT hint;
-  PVRSRVInitializeAppHint(&hint);
-  PVRSRVCreateVirtualAppHint(&hint);
 	const char* configFilename = "ux0:/data/DRIVER2/config.ini";
 #else
 	const char* configFilename = "config.ini";

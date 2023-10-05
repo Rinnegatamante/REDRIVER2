@@ -85,13 +85,25 @@
 
 // FIXME: enable when needed
 #if defined(RENDERER_OGLES)
-
+#ifdef __vita__
+#ifdef __cplusplus
+extern "C" {
+#endif
+void glGenVertexArrays(GLsizei n, GLuint *res);
+void glBindVertexArray(GLuint array);
+void glDeleteVertexArrays(GLsizei n, const GLuint *gl_arrays);
+#ifdef __cplusplus
+};
+#endif
+# define glClearDepth            glClearDepthf
+#define GL_RGB8                                         0x8051
+#else
 #	define glGenVertexArrays       glGenVertexArraysOES
 #	define glBindVertexArray       glBindVertexArrayOES
 #	define glDeleteVertexArrays    glDeleteVertexArraysOES
 # define glClearDepth            glClearDepthf
 # define GL_RGB8                 GL_RGB8_OES
-
+#endif
 #endif
 
 #if defined(RENDERER_OGL)
@@ -99,7 +111,11 @@
 #	define VRAM_INTERNAL_FORMAT   GL_RG32F
 #elif defined(RENDERER_OGLES)
 #	define VRAM_FORMAT            GL_LUMINANCE_ALPHA
+#ifdef __vita__
+#	define VRAM_INTERNAL_FORMAT   GL_RGBA
+#else
 #	define VRAM_INTERNAL_FORMAT   GL_LUMINANCE_ALPHA
+#endif
 #endif
 
 #define VRAM_WIDTH (1024)
