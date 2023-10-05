@@ -111,11 +111,7 @@ void glDeleteVertexArrays(GLsizei n, const GLuint *gl_arrays);
 #	define VRAM_INTERNAL_FORMAT   GL_RG32F
 #elif defined(RENDERER_OGLES)
 #	define VRAM_FORMAT            GL_LUMINANCE_ALPHA
-#ifdef __vita__
-#	define VRAM_INTERNAL_FORMAT   GL_RGBA
-#else
 #	define VRAM_INTERNAL_FORMAT   GL_LUMINANCE_ALPHA
-#endif
 #endif
 
 #define VRAM_WIDTH (1024)
